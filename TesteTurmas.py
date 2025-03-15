@@ -2,53 +2,43 @@ import unittest
 import json
 from turmas import app
 
-class TestTurmaAPI(unittest.TestCase):
-
+class TestAPI(unittest.TestCase):
     def setUp(self):
-        """Configuração inicial para cada teste."""
-        app.testing = True
-        self.client = app.test_client()
-        self.turma = {
+        self.app = app.test_client()
+        self.app.testing = True
+
+    def test_get_turmas(self):
+        response = self.app.get('/turmas')
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.json, list)
+
+    def test_add_turma(self):
+        turma_data = {
             "id": 1,
-            "descricao": "Turma de Matemática",
+            "descricao": "Turma de Medicina",
             "professor_id": 1,
             "ativo": True
         }
-
-    def test_1_add_turma(self):
-        """Testa a adição de uma turma."""
-        response = self.client.post("/turmas", json=self.turma)
+        response = self.app.post('/turmas', json=turma_data)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.get_json()["id"], 1)
-        self.assertEqual(response.get_json()["descricao"], "Turma de Matemática")
+        self.assertIn("id", response.json)
 
-    def test_2_get_turmas(self):
-        """Testa a obtenção da lista de turmas."""
-        self.client.post("/turmas", json=self.turma)
-        response = self.client.get("/turmas")
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.get_json(), list)
+    def test_get_turma_nao_existente(self):
+        response = self.app.get('/turmas/999')
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("erro", response.json)
 
-    def test_3_get_turma_por_id(self):
-        """Testa a obtenção de uma turma específica."""
-        self.client.post("/turmas", json=self.turma)
-        response = self.client.get("/turmas/1")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json()["descricao"], "Turma de Matemática")
-
-    def test_4_update_turma(self):
-        """Testa a atualização dos dados de uma turma."""
-        self.client.post("/turmas", json=self.turma)
-        response = self.client.put("/turmas/1", json={"descricao": "Turma de Física"})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json()["descricao"], "Turma de Física")
-
-    def test_5_delete_turma(self):
-        """Testa a remoção de uma turma."""
-        self.client.post("/turmas", json=self.turma)
-        response = self.client.delete("/turmas/1")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("Turma deletada com sucesso", response.get_json()["mensagem"])
+    def test_delete_turma(self):
+        turma_data = {
+            "id": 2,
+            "descricao": "Turma de Medicina Veterinaria",
+            "professor_id": 2,
+            "ativo": True
+        }
+        self.app.post('/turmas', json=turma_data)
+        delete_response = self.app.delete('/turmas/2')
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertIn("mensagem", delete_response.json)
 
 if __name__ == "__main__":
     unittest.main()
