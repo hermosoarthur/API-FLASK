@@ -14,10 +14,10 @@ def get_professores():
 @app.route("/professores", methods=["POST"])
 def add_professor():
     data = request.json
-    required_fields = {"id", "nome", "idade", "materia", "observacoes"}
+    required_fields = {"id", "nome", "idade", "materia", "Formação"}
     
     if not required_fields.issubset(data.keys()):
-        return jsonify({"erro": "Campos obrigatórios: id, nome, idade, materia, observacoes"}), 400
+        return jsonify({"erro": "Campos obrigatórios: id, nome, idade, materia, Formação"}), 400
     
    
     if any(prof["id"] == data["id"] for prof in professores):
