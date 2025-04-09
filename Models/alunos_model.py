@@ -1,5 +1,3 @@
-#alunos_model.py
-
 from datetime import datetime
 
 alunos = []
@@ -12,13 +10,6 @@ def calcular_media(n1, n2):
     return None
 
 
-def validar_data(data_str):
-    try:
-        return datetime.strptime(data_str, "%Y-%m-%d").date()
-    except ValueError:
-        return None
-
-
 def listar_alunos():
     return alunos
 
@@ -29,33 +20,29 @@ def buscar_aluno_por_id(aluno_id):
 
 def adicionar_aluno(dados):
     global proximo_id
-
     campos_obrigatorios = ['nome', 'idade', 'turma_id', 'data_nascimento']
     for campo in campos_obrigatorios:
         if campo not in dados:
             return {"erro": f"Campo '{campo}' é obrigatório"}, 400
-
-    data_nascimento = validar_data(dados['data_nascimento'])
-    if not data_nascimento:
+    try:
+        data_nasc = datetime.strptime(
+            dados['data_nascimento'], "%Y-%m-%d").date()
+    except ValueError:
         return {"erro": "Formato de data inválido. Use YYYY-MM-DD."}, 400
 
-    novo_aluno = {
+    aluno = {
         "id": proximo_id,
-        "nome": dados['nome'],
-        "idade": dados['idade'],
-        "turma_id": dados['turma_id'],
-        "data_nascimento": str(data_nascimento),
+        "nome": dados["nome"],
+        "idade": dados["idade"],
+        "turma_id": dados["turma_id"],
+        "data_nascimento": str(data_nasc),
         "nota_primeiro_semestre": dados.get("nota_primeiro_semestre"),
         "nota_segundo_semestre": dados.get("nota_segundo_semestre"),
-        "media_final": calcular_media(
-            dados.get("nota_primeiro_semestre"),
-            dados.get("nota_segundo_semestre")
-        )
+        "media_final": calcular_media(dados.get("nota_primeiro_semestre"), dados.get("nota_segundo_semestre"))
     }
-
-    alunos.append(novo_aluno)
+    alunos.append(aluno)
     proximo_id += 1
-    return novo_aluno, 201
+    return aluno, 201
 
 
 def atualizar_aluno(aluno_id, dados):
@@ -63,20 +50,21 @@ def atualizar_aluno(aluno_id, dados):
     if not aluno:
         return {"erro": "Aluno não encontrado"}, 404
 
-    if 'data_nascimento' in dados:
-        data = validar_data(dados['data_nascimento'])
-        if not data:
+    if "data_nascimento" in dados:
+        try:
+            dados["data_nascimento"] = str(datetime.strptime(
+                dados["data_nascimento"], "%Y-%m-%d").date())
+        except ValueError:
             return {"erro": "Formato de data inválido. Use YYYY-MM-DD."}, 400
-        dados['data_nascimento'] = str(data)
 
     for chave in dados:
         if chave in aluno:
             aluno[chave] = dados[chave]
 
-    aluno['media_final'] = calcular_media(
-        aluno.get("nota_primeiro_semestre"),
-        aluno.get("nota_segundo_semestre")
+    aluno["media_final"] = calcular_media(
+        aluno.get("nota_primeiro_semestre"), aluno.get("nota_segundo_semestre")
     )
+
     return aluno, 200
 
 
