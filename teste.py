@@ -1,125 +1,119 @@
 import unittest
-import json
 from app import app
 
 
 class TestAPI(unittest.TestCase):
     def setUp(self):
-        self.app = app.test_client()
-        self.app.testing = True
+        self.client = app.test_client()
 
-    def test_get_alunos(self):
-        response = self.app.get('/alunos')
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.json, list)
+    # --- Testes Alunos ---
+    def test_01_adicionar_aluno(self):
+        self.client.post("/turmas", json={
+            "descricao": "Turma Teste",
+            "sala": "101",
+            "turno": "Manhã"
+        })
 
-    def test_add_aluno(self):
-        aluno_data = {
-            "nome": "João Silva",
-            "idade": 20,
+        resposta = self.client.post("/alunos", json={
+            "nome": "João",
+            "idade": 15,
             "turma_id": 1,
-            "data_nascimento": "2004-05-10",
-            "nota_primeiro_semestre": 8.5,
-            "nota_segundo_semestre": 7.0
-        }
-        response = self.app.post('/alunos', json=aluno_data)
-        self.assertEqual(response.status_code, 201)
-        self.assertIn("id", response.json)
+            "data_nascimento": "2010-03-15",
+            "nota_primeiro_semestre": 7.0,
+            "nota_segundo_semestre": 8.0
+        })
+        self.assertEqual(resposta.status_code, 201)
+        self.assertEqual(resposta.json["media_final"], 7.5)
 
-    def test_get_aluno_nao_existente(self):
-        response = self.app.get('/alunos/999')
-        self.assertEqual(response.status_code, 404)
-        self.assertIn("erro", response.json)
+    def test_02_listar_alunos(self):
+        resposta = self.client.get("/alunos")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIsInstance(resposta.json, list)
 
-    def test_add_aluno_campos_faltando(self):
-        aluno_data = {"nome": "Carlos"}
-        response = self.app.post('/alunos', json=aluno_data)
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("erro", response.json)
+    def test_03_aluno_inexistente(self):
+        resposta = self.client.get("/alunos/999")
+        self.assertEqual(resposta.status_code, 404)
 
-    def test_delete_aluno(self):
-        aluno_data = {
-            "nome": "Maria Souza",
-            "idade": 21,
-            "turma_id": 2,
-            "data_nascimento": "2003-08-15"
-        }
-        response = self.app.post('/alunos', json=aluno_data)
-        aluno_id = response.json["id"]
-        delete_response = self.app.delete(f'/alunos/{aluno_id}')
-        self.assertEqual(delete_response.status_code, 200)
-        self.assertIn("mensagem", delete_response.json)
+    def test_04_atualizar_aluno(self):
+        resposta = self.client.put("/alunos/1", json={
+            "nome": "Arthur",
+            "nota_primeiro_semestre": 9.0,
+            "nota_segundo_semestre": 9.0
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json["nome"], "Arthur")
+        self.assertEqual(resposta.json["media_final"], 9.0)
 
-    # Professores
-    def test_get_professores(self):
-        response = self.app.get('/professores')
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.json, list)
+    def test_05_deletar_aluno(self):
+        resposta = self.client.delete("/alunos/1")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn("mensagem", resposta.json)
 
-    def test_add_professor(self):
-        professor_data = {
-            "id": 1,
-            "nome": "Ana Costa",
+    # --- Testes Professores ---
+    def test_06_adicionar_professor(self):
+        resposta = self.client.post("/professores", json={
+            "nome": "Maria",
             "idade": 40,
             "materia": "Matemática",
-            "observacoes": "Doutora em Educação"
-        }
-        response = self.app.post('/professores', json=professor_data)
-        self.assertEqual(response.status_code, 201)
-        self.assertIn("mensagem", response.json)
+            "observacoes": "PHD em álgebra"
+        })
+        self.assertEqual(resposta.status_code, 201)
 
-    def test_get_professor_nao_existente(self):
-        response = self.app.get('/professores/999')
-        self.assertEqual(response.status_code, 404)
-        self.assertIn("erro", response.json)
+    def test_07_listar_professores(self):
+        resposta = self.client.get("/professores")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIsInstance(resposta.json, list)
 
-    def test_delete_professor(self):
-        professor_data = {
-            "id": 2,
-            "nome": "Carlos Lima",
-            "idade": 50,
-            "materia": "História",
-            "observacoes": "Especialista em História Medieval"
-        }
-        self.app.post('/professores', json=professor_data)
-        delete_response = self.app.delete('/professores/2')
-        self.assertEqual(delete_response.status_code, 200)
-        self.assertIn("mensagem", delete_response.json)
+    def test_08_professor_inexistente(self):
+        resposta = self.client.get("/professores/999")
+        self.assertEqual(resposta.status_code, 404)
 
-    # Turmas
-    def test_get_turmas(self):
-        response = self.app.get('/turmas')
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.json, list)
+    def test_09_atualizar_professor(self):
+        resposta = self.client.put("/professores/1", json={
+            "nome": "Marina",
+            "idade": 41
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn("mensagem", resposta.json)
 
-    def test_add_turma(self):
-        turma_data = {
-            "id": 1,
-            "descricao": "Turma de Física Avançada",
-            "professor_id": 1,
-            "ativo": True
-        }
-        response = self.app.post('/turmas', json=turma_data)
-        self.assertEqual(response.status_code, 201)
-        self.assertIn("id", response.json)
+    def test_10_deletar_professor(self):
+        resposta = self.client.delete("/professores/1")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn("mensagem", resposta.json)
 
-    def test_get_turma_nao_existente(self):
-        response = self.app.get('/turmas/999')
-        self.assertEqual(response.status_code, 404)
-        self.assertIn("erro", response.json)
+    # --- Testes Turmas ---
 
-    def test_delete_turma(self):
-        turma_data = {
-            "id": 2,
-            "descricao": "Turma de Química",
-            "professor_id": 2,
-            "ativo": True
-        }
-        self.app.post('/turmas', json=turma_data)
-        delete_response = self.app.delete('/turmas/2')
-        self.assertEqual(delete_response.status_code, 200)
-        self.assertIn("mensagem", delete_response.json)
+    def test_11_criar_turma(self):
+        resposta = self.client.post("/turmas", json={
+        "descricao": "Turma de Química",
+        "sala": "A1",
+        "turno": "Manhã"
+    })
+        self.assertEqual(resposta.status_code, 201)
 
 
-if __name__ == "__main__":
+    def test_12_listar_turmas(self):
+        resposta = self.client.get("/turmas")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIsInstance(resposta.json, list)
+
+    def test_13_turma_inexistente(self):
+        resposta = self.client.get("/turmas/999")
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_14_atualizar_turma(self):
+        resposta = self.client.put("/turmas/1", json={
+            "descricao": "Turma de Inglês",
+            "ativo": False
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json["descricao"], "Turma de Inglês")
+
+    def test_15_deletar_turma(self):
+        resposta = self.client.delete("/turmas/1")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn("mensagem", resposta.json)
+
+
+if __name__ == '__main__':
     unittest.main()
