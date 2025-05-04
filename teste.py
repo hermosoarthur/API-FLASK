@@ -99,7 +99,7 @@ class TestAPI(unittest.TestCase):
             f"/projeto-api-flask/alunos/{aluno['id']}")
         self.assertEqual(resposta.status_code, 200)
         self.assertEqual(resposta.json["mensagem"],
-                         "Aluno removido com sucesso")
+                         "Aluno deletado com sucesso")
 
     # --- Testes Professores ---
 
@@ -145,7 +145,7 @@ class TestAPI(unittest.TestCase):
             f'/projeto-api-flask/professores/{professor["id"]}')
         self.assertEqual(resposta.status_code, 200)
         self.assertEqual(resposta.json["mensagem"],
-                         "Professor removido com sucesso")
+                         "Professor deletado com sucesso")
 
     # --- Testes Turmas ---
 

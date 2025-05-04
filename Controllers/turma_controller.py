@@ -36,3 +36,5 @@ def atualizar_turma(turma_id):
 def deletar_turma(turma_id):
     resultado, status = turma_model.deletar_turma(turma_id)
     return jsonify(resultado), status
+
+

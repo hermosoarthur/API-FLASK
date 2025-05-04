@@ -70,3 +70,5 @@ def deletar_turma(idTurma):
     db.session.delete(turma)
     db.session.commit()
     return {"mensagem": "Turma deletada com sucesso"}, 200
+
+

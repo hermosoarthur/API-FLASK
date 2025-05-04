@@ -53,11 +53,20 @@ class TurmaResource(Resource):
 
         db.session.commit()
         return turma.to_dict(), 200
-
+    
+      
+    @turmas_ns.doc('deletar_turma')
+    
     @turmas_ns.response(200, 'Turma deletada com sucesso')
+    @turmas_ns.response(404, 'Turma não encontrada')
     def delete(self, id):
         """Remove uma turma pelo ID"""
-        turma = Turma.query.get_or_404(id)
+        turma = Turma.query.get(id)
+        if not turma:
+            return {"erro": "Turma não encontrada"}, 404
+     
+
         db.session.delete(turma)
         db.session.commit()
         return {"mensagem": "Turma deletada com sucesso"}, 200
+  

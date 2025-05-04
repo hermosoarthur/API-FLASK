@@ -92,11 +92,11 @@ def atualizar_aluno(aluno_id, dados):
     return aluno.to_dict(), 200
 
 def deletar_aluno(aluno_id):
-    aluno = Aluno.query.get(aluno_id)
-    if not aluno:
-        return {"erro": "Aluno não encontrado"}, 404
+     aluno = db.session.get(Aluno, aluno_id)
+     if not aluno:
+         return {"erro": "Aluno não encontrado"}, 404  
 
-    db.session.delete(aluno)
-    db.session.commit()
+     db.session.delete(aluno)
+     db.session.commit()
 
-    return {"mensagem": "Aluno removido com sucesso"}, 200
+     return {"mensagem": "Aluno deletado com sucesso"}, 200  

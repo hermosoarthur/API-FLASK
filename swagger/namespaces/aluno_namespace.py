@@ -8,7 +8,7 @@ alunos_ns = Namespace(
     'alunos', description='Operações relacionadas aos alunos')
 
 aluno_model = api.model('Aluno', {
-    'id': fields.Integer(description='ID do aluno'),
+    'id': fields.Integer(description='ID do aluno', required=True),
     'nome': fields.String(description='Nome do aluno', required=True),
     'idade': fields.Integer(description='Idade do aluno', required=True),
     'turma_id': fields.Integer(required=True, description='ID da turma'),
@@ -82,10 +82,22 @@ class AlunoResource(Resource):
             'nota_segundo_semestre', aluno.nota_segundo_semestre)
         aluno.turma_id = dados.get('turma_id', aluno.turma_id)
 
-        
         aluno.calcular_media()
-
-        
         db.session.commit()
 
         return aluno.to_dict(), 200
+    
+    @alunos_ns.doc('deletar_aluno')
+    @alunos_ns.response(200, 'Aluno removido com sucesso')
+
+  
+    @alunos_ns.response(200, 'Aluno deletado com sucesso')
+    @alunos_ns.response(404, 'Aluno não encontrado')
+    def delete(self, id):
+        aluno = Aluno.query.get(id)  
+        if not aluno: 
+            return {"erro": "Aluno não encontrado"}, 404
+        db.session.delete(aluno)
+        db.session.commit()
+        return {'mensagem': 'Aluno deletado com sucesso'}, 200
+    
