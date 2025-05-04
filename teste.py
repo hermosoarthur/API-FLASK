@@ -14,10 +14,10 @@ class TestAPI(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
 
-        # Configurar banco de dados de teste
+        
         db.create_all()
 
-        # Criar uma turma de teste para os alunos
+        
         self.turma_test = Turma(
             descricao="Turma Teste",
             sala="101",
@@ -25,7 +25,7 @@ class TestAPI(unittest.TestCase):
         )
         db.session.add(self.turma_test)
 
-        # Criar um professor de teste
+        
         self.professor_test = Professor(
             nome="Professor Teste",
             idade=45,
@@ -41,6 +41,7 @@ class TestAPI(unittest.TestCase):
         self.app_context.pop()
 
     # --- Testes Alunos ---
+
     def test_01_adicionar_aluno(self):
         resposta = self.client.post("/projeto-api-flask/alunos", json={
             "nome": "João Silva",
@@ -64,7 +65,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(resposta.status_code, 404)
 
     def test_04_atualizar_aluno(self):
-        # Primeiro cria um aluno
+       
         aluno = self.client.post("/projeto-api-flask/alunos", json={
             "nome": "Carlos Souza",
             "idade": 14,
@@ -84,7 +85,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(resposta.json["media_final"], 8.5)
 
     def test_05_deletar_aluno(self):
-        # Primeiro cria um aluno
+        
         aluno = self.client.post("/projeto-api-flask/alunos", json={
             "nome": "Ana Paula",
             "idade": 15,
@@ -101,6 +102,7 @@ class TestAPI(unittest.TestCase):
                          "Aluno removido com sucesso")
 
     # --- Testes Professores ---
+
     def test_06_adicionar_professor(self):
         resposta = self.client.post('/projeto-api-flask/professores', json={
             "nome": "Maria Santos",
@@ -131,7 +133,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(resposta.json["nome"], "Professor Atualizado")
 
     def test_10_deletar_professor(self):
-        # Cria um novo professor para deletar
+        
         professor = self.client.post('/projeto-api-flask/professores', json={
             "nome": "Professor para Deletar",
             "idade": 50,
@@ -146,6 +148,7 @@ class TestAPI(unittest.TestCase):
                          "Professor removido com sucesso")
 
     # --- Testes Turmas ---
+
     def test_11_criar_turma(self):
         resposta = self.client.post("/projeto-api-flask/turmas", json={
             "descricao": "Turma de Química Avançada",
@@ -172,7 +175,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(resposta.status_code, 200)
 
     def test_15_deletar_turma(self):
-        # Cria uma nova turma para deletar
+        
         turma = self.client.post("/projeto-api-flask/turmas", json={
             "descricao": "Turma Temporária",
             "sala": "Temp-01",

@@ -24,7 +24,7 @@ class AlunosList(Resource):
     @alunos_ns.marshal_list_with(aluno_model)
     def get(self):
         alunos = Aluno.query.all()
-        # Usando to_dict() para converter objetos em dicionários
+       
         return [aluno.to_dict() for aluno in alunos]
 
     @alunos_ns.expect(aluno_model)
@@ -48,7 +48,7 @@ class AlunosList(Resource):
         novo_aluno.calcular_media()
         db.session.add(novo_aluno)
         db.session.commit()
-        # Usando to_dict() para retornar o aluno como dicionário
+        
         return novo_aluno.to_dict(), 201
 
 
@@ -57,7 +57,7 @@ class AlunoResource(Resource):
     @alunos_ns.marshal_with(aluno_model)
     def get(self, id):
         aluno = Aluno.query.get_or_404(id)
-        return aluno.to_dict()  # Usando to_dict() para retornar o aluno como dicionário
+        return aluno.to_dict()  
 
     @alunos_ns.expect(aluno_model)
     @alunos_ns.response(200, 'Aluno atualizado com sucesso')
@@ -65,7 +65,7 @@ class AlunoResource(Resource):
         aluno = Aluno.query.get_or_404(id)
         dados = api.payload
 
-        # Atualização dos campos, usando dados.get() para permitir valores ausentes
+        
         aluno.nome = dados.get('nome', aluno.nome)
         aluno.idade = dados.get('idade', aluno.idade)
 
@@ -82,10 +82,10 @@ class AlunoResource(Resource):
             'nota_segundo_semestre', aluno.nota_segundo_semestre)
         aluno.turma_id = dados.get('turma_id', aluno.turma_id)
 
-        # Recalcular a média após atualização
+        
         aluno.calcular_media()
 
-        # Salvar no banco de dados
+        
         db.session.commit()
 
         return aluno.to_dict(), 200

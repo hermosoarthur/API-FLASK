@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
 from Models import aluno_model
 from config import db
-from Models.turma_model import Turma  # Importa o modelo de turma
+from Models.turma_model import Turma  
 
-# Ajuste o prefixo aqui
+
 aluno_bp = Blueprint('aluno_bp', __name__, url_prefix='/projeto-api-flask/alunos')
 
 
@@ -24,12 +24,12 @@ def obter_aluno(aluno_id):
 def criar_aluno():
     dados = request.json
 
-    # Verifica se a turma com o id fornecido existe
+    
     turma = Turma.query.get(dados.get('turma_id'))
     if not turma:
         return jsonify({"erro": "Turma não encontrada"}), 404
 
-    # Caso contrário, cria o aluno
+    
     resultado, status = aluno_model.adicionar_aluno(dados)
     return jsonify(resultado), status
 
