@@ -1,5 +1,10 @@
 from config import db
 
+
+class TurmaNaoIdentificada(Exception):
+    pass
+
+
 class Turma(db.Model):
     __tablename__ = 'turmas'
 
@@ -8,7 +13,8 @@ class Turma(db.Model):
     sala = db.Column(db.String(10), nullable=False)
     turno = db.Column(db.String(20), nullable=False)
 
-    alunos = db.relationship('Aluno', backref='turma', lazy=True)  # Relacionamento reverso
+    alunos = db.relationship('Aluno', backref='turma',
+                             lazy=True)  # Relacionamento reverso
 
     def to_dict(self):
         return {
@@ -18,12 +24,16 @@ class Turma(db.Model):
             'turno': self.turno
         }
 
+
 def listar_turmas():
-    return [t.to_dict() for t in Turma.query.all()]
+    turmas = Turma.query.all()
+    return [turma.to_dict() for turma in turmas], 200
+
 
 def buscar_turma_por_id(turma_id):
     turma = Turma.query.get(turma_id)
     return turma.to_dict() if turma else None
+
 
 def adicionar_turma(dados):
     nova_turma = Turma(
@@ -35,16 +45,22 @@ def adicionar_turma(dados):
     db.session.commit()
     return nova_turma.to_dict(), 201
 
-def atualizar_turma(turma_id, dados):
-    turma = Turma.query.get(turma_id)
-    if not turma:
-        return {"erro": "Turma não encontrada"}, 404
 
-    turma.descricao = dados['descricao']
-    turma.sala = dados['sala']
-    turma.turno = dados['turno']
+def atualizar_turma(idTurma, dados):
+    turma = Turma.query.get(idTurma)
+    if not turma:
+        raise TurmaNaoIdentificada(f"Turma com ID {idTurma} não encontrada.")
+
+    if 'descricao' in dados:
+        turma.descricao = dados['descricao']
+    if 'professor_id' in dados:
+        turma.professor_id = dados['professor_id']
+    if 'ativo' in dados:
+        turma.ativo = dados['ativo']
+
     db.session.commit()
     return turma.to_dict(), 200
+
 
 def deletar_turma(turma_id):
     turma = Turma.query.get(turma_id)

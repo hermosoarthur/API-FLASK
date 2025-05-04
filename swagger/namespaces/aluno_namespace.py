@@ -4,7 +4,8 @@ from swagger import api
 from config import db
 from datetime import datetime
 
-alunos_ns = Namespace('alunos', description='Operações relacionadas aos alunos')
+alunos_ns = Namespace(
+    'alunos', description='Operações relacionadas aos alunos')
 
 aluno_model = api.model('Aluno', {
     'id': fields.Integer(description='ID do aluno'),
@@ -17,19 +18,22 @@ aluno_model = api.model('Aluno', {
     'media_final': fields.Float(description='Média final do aluno', required=False)
 })
 
+
 @alunos_ns.route('/')
 class AlunosList(Resource):
     @alunos_ns.marshal_list_with(aluno_model)
     def get(self):
         alunos = Aluno.query.all()
-        return [aluno.to_dict() for aluno in alunos]  # Usando to_dict() para converter objetos em dicionários
+        # Usando to_dict() para converter objetos em dicionários
+        return [aluno.to_dict() for aluno in alunos]
 
     @alunos_ns.expect(aluno_model)
     @alunos_ns.response(201, 'Aluno criado com sucesso')
     def post(self):
         dados = api.payload
         try:
-            data_nascimento = datetime.strptime(dados['data_nascimento'], '%Y-%m-%d').date()
+            data_nascimento = datetime.strptime(
+                dados['data_nascimento'], '%Y-%m-%d').date()
         except ValueError:
             return {'erro': 'Formato de data inválido. Use YYYY-MM-DD.'}, 400
 
@@ -44,7 +48,9 @@ class AlunosList(Resource):
         novo_aluno.calcular_media()
         db.session.add(novo_aluno)
         db.session.commit()
-        return novo_aluno.to_dict(), 201  # Usando to_dict() para retornar o aluno como dicionário
+        # Usando to_dict() para retornar o aluno como dicionário
+        return novo_aluno.to_dict(), 201
+
 
 @alunos_ns.route('/<int:id>')
 class AlunoResource(Resource):
@@ -59,17 +65,27 @@ class AlunoResource(Resource):
         aluno = Aluno.query.get_or_404(id)
         dados = api.payload
 
-        aluno.nome = dados['nome']
-        aluno.idade = dados['idade']
-        try:
-            aluno.data_nascimento = datetime.strptime(dados['data_nascimento'], '%Y-%m-%d').date()
-        except ValueError:
-            return {'erro': 'Formato de data inválido. Use YYYY-MM-DD.'}, 400
-        aluno.nota_primeiro_semestre = dados.get('nota_primeiro_semestre')
-        aluno.nota_segundo_semestre = dados.get('nota_segundo_semestre')
-        aluno.turma_id = dados.get('turma_id')
+        # Atualização dos campos, usando dados.get() para permitir valores ausentes
+        aluno.nome = dados.get('nome', aluno.nome)
+        aluno.idade = dados.get('idade', aluno.idade)
+
+        if 'data_nascimento' in dados:
+            try:
+                aluno.data_nascimento = datetime.strptime(
+                    dados['data_nascimento'], '%Y-%m-%d').date()
+            except ValueError:
+                return {'erro': 'Formato de data inválido. Use YYYY-MM-DD.'}, 400
+
+        aluno.nota_primeiro_semestre = dados.get(
+            'nota_primeiro_semestre', aluno.nota_primeiro_semestre)
+        aluno.nota_segundo_semestre = dados.get(
+            'nota_segundo_semestre', aluno.nota_segundo_semestre)
+        aluno.turma_id = dados.get('turma_id', aluno.turma_id)
+
+        # Recalcular a média após atualização
         aluno.calcular_media()
 
+        # Salvar no banco de dados
         db.session.commit()
 
-        return aluno.to_dict(), 200  
+        return aluno.to_dict(), 200

@@ -1,6 +1,11 @@
 from datetime import datetime
 from config import db
 
+
+class ProfessorNaoIdentificado(Exception):
+    pass
+
+
 class Professor(db.Model):
     __tablename__ = 'professores'
 
@@ -10,35 +15,85 @@ class Professor(db.Model):
     materia = db.Column(db.String(100), nullable=False)
     observacoes = db.Column(db.Text, nullable=True)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nome": self.nome,
+            "idade": self.idade,
+            "materia": self.materia,
+            "observacoes": self.observacoes
+        }
 
-professores = []
 
 def listar_professores():
-    return professores
+    professores = db.session.execute(db.select(Professor)).scalars().all()
+    return [
+        {
+            "id": p.id,
+            "nome": p.nome,
+            "idade": p.idade,
+            "materia": p.materia,
+            "observacoes": p.observacoes
+        }
+        for p in professores
+    ]
 
-def buscar_professor_por_id(prof_id):
-    return next((p for p in professores if p['id'] == prof_id), None)
+
+def buscar_professor_por_id(professor_id):
+    professor = db.session.get(Professor, professor_id)
+    if not professor:
+        return None
+    return {
+        "id": professor.id,
+        "nome": professor.nome,
+        "idade": professor.idade,
+        "materia": professor.materia,
+        "observacoes": professor.observacoes
+    }
+
 
 def adicionar_professor(dados):
-    campos = {"id", "nome", "idade", "materia", "observacoes"}
-    if not campos.issubset(dados.keys()):
-        return {"erro": "Campos obrigatórios: id, nome, idade, materia, observacoes"}, 400
+    novo_professor = Professor(
+        nome=dados['nome'],
+        idade=dados['idade'],
+        materia=dados['materia'],
+        observacoes=dados.get('observacoes')
+    )
+    db.session.add(novo_professor)
+    db.session.commit()
+    return {
+        "id": novo_professor.id,
+        "nome": novo_professor.nome,
+        "idade": novo_professor.idade,
+        "materia": novo_professor.materia,
+        "observacoes": novo_professor.observacoes
+    }, 201
 
-    if any(p['id'] == dados['id'] for p in professores):
-        return {"erro": "ID já existe"}, 400
 
-    professores.append(dados)
-    return {"mensagem": "Professor adicionado com sucesso"}, 201
+def atualizar_professor(idProfessor, dados):
+    professor = Professor.query.get(idProfessor)
+    if not professor:
+        raise ProfessorNaoIdentificado(
+            f"Professor com ID {idProfessor} não encontrado.")
 
-def atualizar_professor(prof_id, dados):
-    professor = buscar_professor_por_id(prof_id)
+    if 'nome' in dados:
+        professor.nome = dados['nome']
+    if 'idade' in dados:
+        professor.idade = dados['idade']
+    if 'materia' in dados:
+        professor.materia = dados['materia']
+    if 'observacoes' in dados:
+        professor.observacoes = dados['observacoes']
+
+    db.session.commit()
+    return professor.to_dict(), 200
+
+
+def deletar_professor(professor_id):
+    professor = db.session.get(Professor, professor_id)
     if not professor:
         return {"erro": "Professor não encontrado"}, 404
 
-    professor.update(dados)
-    return {"mensagem": "Professor atualizado com sucesso"}, 200
-
-def deletar_professor(prof_id):
-    global professores
-    professores = [p for p in professores if p['id'] != prof_id]
+    db.session.delete(professor)
+    db.session.commit()
     return {"mensagem": "Professor removido com sucesso"}, 200

@@ -3,11 +3,14 @@ from Models import aluno_model
 from config import db
 from Models.turma_model import Turma  # Importa o modelo de turma
 
-aluno_bp = Blueprint('aluno_bp', __name__, url_prefix='/alunos')
+# Ajuste o prefixo aqui
+aluno_bp = Blueprint('aluno_bp', __name__, url_prefix='/projeto-api-flask/alunos')
+
 
 @aluno_bp.route('', methods=['GET'])
 def listar_alunos():
     return jsonify(aluno_model.listar_alunos())
+
 
 @aluno_bp.route('/<int:aluno_id>', methods=['GET'])
 def obter_aluno(aluno_id):
@@ -15,6 +18,7 @@ def obter_aluno(aluno_id):
     if aluno:
         return jsonify(aluno)
     return jsonify({"erro": "Aluno não encontrado"}), 404
+
 
 @aluno_bp.route('', methods=['POST'])
 def criar_aluno():
@@ -29,11 +33,13 @@ def criar_aluno():
     resultado, status = aluno_model.adicionar_aluno(dados)
     return jsonify(resultado), status
 
+
 @aluno_bp.route('/<int:aluno_id>', methods=['PUT'])
 def atualizar_aluno(aluno_id):
     dados = request.json
     resultado, status = aluno_model.atualizar_aluno(aluno_id, dados)
     return jsonify(resultado), status
+
 
 @aluno_bp.route('/<int:aluno_id>', methods=['DELETE'])
 def deletar_aluno(aluno_id):
