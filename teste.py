@@ -1,125 +1,190 @@
-import unittest
-import json
+from datetime import datetime
 from app import app
+from Models.professor_model import Professor
+from Models.turma_model import Turma
+from Models.aluno_model import Aluno
+from config import db
+import unittest
 
 
 class TestAPI(unittest.TestCase):
     def setUp(self):
-        self.app = app.test_client()
-        self.app.testing = True
+        self.app = app
+        self.client = self.app.test_client()
+        self.app_context = self.app.app_context()
+        self.app_context.push()
 
-    def test_get_alunos(self):
-        response = self.app.get('/alunos')
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.json, list)
+        db.create_all()
 
-    def test_add_aluno(self):
-        aluno_data = {
+        self.turma_test = Turma(
+            descricao="Turma Teste",
+            professor_id=1,
+            ativo=0,
+            observacoes="testes"
+        )
+        db.session.add(self.turma_test)
+
+        self.professor_test = Professor(
+            nome="Professor Teste",
+            idade=45,
+            materia="Matemática",
+            observacoes="Professor de teste"
+        )
+        db.session.add(self.professor_test)
+        db.session.commit()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
+    # --- Testes Alunos ---
+
+    def test_01_adicionar_aluno(self):
+        resposta = self.client.post("/projeto-api-flask/alunos", json={
             "nome": "João Silva",
-            "idade": 20,
-            "turma_id": 1,
-            "data_nascimento": "2004-05-10",
-            "nota_primeiro_semestre": 8.5,
+            "idade": 15,
+            "turma_id": self.turma_test.id,
+            "data_nascimento": "2010-03-15",
+            "nota_primeiro_semestre": 7.5,
+            "nota_segundo_semestre": 8.5
+        })
+        self.assertEqual(resposta.status_code, 201)
+        self.assertIn("id", resposta.json)
+        self.assertEqual(resposta.json["media_final"], 8.0)
+
+    def test_02_listar_alunos(self):
+        resposta = self.client.get("/projeto-api-flask/alunos")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIsInstance(resposta.json, list)
+
+    def test_03_aluno_inexistente(self):
+        resposta = self.client.get("/projeto-api-flask/alunos/9999")
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_04_atualizar_aluno(self):
+        aluno = self.client.post("/projeto-api-flask/alunos", json={
+            "nome": "Carlos Souza",
+            "idade": 14,
+            "turma_id": self.turma_test.id,
+            "data_nascimento": "2011-02-10",
+            "nota_primeiro_semestre": 6.0,
             "nota_segundo_semestre": 7.0
-        }
-        response = self.app.post('/alunos', json=aluno_data)
-        self.assertEqual(response.status_code, 201)
-        self.assertIn("id", response.json)
+        }).json
 
-    def test_get_aluno_nao_existente(self):
-        response = self.app.get('/alunos/999')
-        self.assertEqual(response.status_code, 404)
-        self.assertIn("erro", response.json)
+        resposta = self.client.put(f"/projeto-api-flask/alunos/{aluno['id']}", json={
+            "nome": "Carlos Eduardo Souza",
+            "nota_primeiro_semestre": 8.0,
+            "nota_segundo_semestre": 9.0
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json["nome"], "Carlos Eduardo Souza")
+        self.assertEqual(resposta.json["media_final"], 8.5)
 
-    def test_add_aluno_campos_faltando(self):
-        aluno_data = {"nome": "Carlos"}
-        response = self.app.post('/alunos', json=aluno_data)
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("erro", response.json)
+    def test_05_deletar_aluno(self):
+        aluno = self.client.post("/projeto-api-flask/alunos", json={
+            "nome": "Ana Paula",
+            "idade": 15,
+            "turma_id": self.turma_test.id,
+            "data_nascimento": "2010-08-25",
+            "nota_primeiro_semestre": 9.5,
+            "nota_segundo_semestre": 10.0
+        }).json
 
-    def test_delete_aluno(self):
-        aluno_data = {
-            "nome": "Maria Souza",
-            "idade": 21,
-            "turma_id": 2,
-            "data_nascimento": "2003-08-15"
-        }
-        response = self.app.post('/alunos', json=aluno_data)
-        aluno_id = response.json["id"]
-        delete_response = self.app.delete(f'/alunos/{aluno_id}')
-        self.assertEqual(delete_response.status_code, 200)
-        self.assertIn("mensagem", delete_response.json)
+        resposta = self.client.delete(
+            f"/projeto-api-flask/alunos/{aluno['id']}")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json["mensagem"],
+                         "Aluno deletado com sucesso")
 
-    # Professores
-    def test_get_professores(self):
-        response = self.app.get('/professores')
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.json, list)
+    # --- Testes Professores ---
 
-    def test_add_professor(self):
-        professor_data = {
-            "id": 1,
-            "nome": "Ana Costa",
-            "idade": 40,
+    def test_06_adicionar_professor(self):
+        resposta = self.client.post('/projeto-api-flask/professores', json={
+            "nome": "Maria Santos",
+            "idade": 42,
             "materia": "Matemática",
-            "observacoes": "Doutora em Educação"
-        }
-        response = self.app.post('/professores', json=professor_data)
-        self.assertEqual(response.status_code, 201)
-        self.assertIn("mensagem", response.json)
+            "observacoes": "Especialista em álgebra linear"
+        })
+        self.assertEqual(resposta.status_code, 201)
+        self.assertIn("id", resposta.json)
 
-    def test_get_professor_nao_existente(self):
-        response = self.app.get('/professores/999')
-        self.assertEqual(response.status_code, 404)
-        self.assertIn("erro", response.json)
+    def test_07_listar_professores(self):
+        resposta = self.client.get('/projeto-api-flask/professores')
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIsInstance(resposta.json, dict)
+        self.assertIn("professores", resposta.json)
 
-    def test_delete_professor(self):
-        professor_data = {
-            "id": 2,
-            "nome": "Carlos Lima",
+    def test_08_professor_inexistente(self):
+        resposta = self.client.get('/projeto-api-flask/professores/9999')
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_09_atualizar_professor(self):
+        resposta = self.client.put(f'/projeto-api-flask/professores/{self.professor_test.id}', json={
+            "nome": "Professor Atualizado",
+            "idade": 46,
+            "materia": "Matemática Avançada"
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json["nome"], "Professor Atualizado")
+
+    def test_10_deletar_professor(self):
+        professor = self.client.post('/projeto-api-flask/professores', json={
+            "nome": "Professor para Deletar",
             "idade": 50,
-            "materia": "História",
-            "observacoes": "Especialista em História Medieval"
-        }
-        self.app.post('/professores', json=professor_data)
-        delete_response = self.app.delete('/professores/2')
-        self.assertEqual(delete_response.status_code, 200)
-        self.assertIn("mensagem", delete_response.json)
+            "materia": "Física",
+            "observacoes": "Para teste de deleção"
+        }).json
 
-    # Turmas
-    def test_get_turmas(self):
-        response = self.app.get('/turmas')
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.json, list)
+        resposta = self.client.delete(
+            f'/projeto-api-flask/professores/{professor["id"]}')
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json["mensagem"],
+                         "Professor deletado com sucesso")
 
-    def test_add_turma(self):
-        turma_data = {
-            "id": 1,
-            "descricao": "Turma de Física Avançada",
+    # --- Testes Turmas ---
+
+    def test_11_criar_turma(self):
+        resposta = self.client.post("/projeto-api-flask/turmas", json={
+            "descricao": "Turma de Química Avançada",
             "professor_id": 1,
-            "ativo": True
-        }
-        response = self.app.post('/turmas', json=turma_data)
-        self.assertEqual(response.status_code, 201)
-        self.assertIn("id", response.json)
+            "ativo": 1,
+            "observacoes": "Tests"
+        })
+        self.assertEqual(resposta.status_code, 201)
+        self.assertIn("id", resposta.json)
 
-    def test_get_turma_nao_existente(self):
-        response = self.app.get('/turmas/999')
-        self.assertEqual(response.status_code, 404)
-        self.assertIn("erro", response.json)
+    def test_12_listar_turmas(self):
+        resposta = self.client.get("/projeto-api-flask/turmas")
+        self.assertEqual(resposta.status_code, 200)
 
-    def test_delete_turma(self):
-        turma_data = {
-            "id": 2,
-            "descricao": "Turma de Química",
+    def test_13_turma_inexistente(self):
+        resposta = self.client.get("/projeto-api-flask/turmas/9999")
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_14_atualizar_turma(self):
+        resposta = self.client.put(f"/projeto-api-flask/turmas/{self.turma_test.id}", json={
+            "descricao": "Turma de Matemática",
             "professor_id": 2,
-            "ativo": True
-        }
-        self.app.post('/turmas', json=turma_data)
-        delete_response = self.app.delete('/turmas/2')
-        self.assertEqual(delete_response.status_code, 200)
-        self.assertIn("mensagem", delete_response.json)
+            "ativo": 0,
+            "observacoes": "Teste"
+        })
+        self.assertEqual(resposta.status_code, 200)
+
+    def test_15_deletar_turma(self):
+        turma = self.client.post("/projeto-api-flask/turmas", json={
+            "descricao": "Turma Temporária",
+            "professor_id": 1,
+            "ativo": 1,
+            "observacoes": "Testss"
+        }).json
+
+        resposta = self.client.delete(
+            f"/projeto-api-flask/turmas/{turma['id']}")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json["mensagem"],
+                         "Turma deletada com sucesso")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
