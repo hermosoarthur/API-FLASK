@@ -1,4 +1,4 @@
-
+from flask_sqlalchemy import SQLAlchemy
 
 class Config:
     DEBUG = True
@@ -6,3 +6,6 @@ class Config:
     HOST = '0.0.0.0'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///banco.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
+db = SQLAlchemy()
