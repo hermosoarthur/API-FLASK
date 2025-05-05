@@ -8,8 +8,9 @@ turmas_ns = Namespace('turmas', description='Operações relacionadas às turmas
 turma_model = api.model('Turma', {
     'id': fields.Integer(description='ID da turma'),
     'descricao': fields.String(description='Descrição da turma', required=True),
-    'sala': fields.String(description='Sala da turma', required=True),
-    'turno': fields.String(description='Turno da turma', required=True),
+    'professor_id': fields.Integer(required=True, description='ID do Professor'),
+    'ativo': fields.Boolean(description='Ativo', required=True),
+    'observacoes':fields.String(description='Observações de Turma', required=True)
 })
 
 
@@ -48,8 +49,9 @@ class TurmaResource(Resource):
         dados = api.payload
 
         turma.descricao = dados.get('descricao', turma.descricao)
-        turma.sala = dados.get('sala', turma.sala)
-        turma.turno = dados.get('turno', turma.turno)
+        turma.professor_id = dados.get('professor_id', turma.professor_id)
+        turma.ativo = dados.get('ativo', turma.ativo)
+        turma.observacoes = dados.get('observacoes', turma.observacoes)
 
         db.session.commit()
         return turma.to_dict(), 200

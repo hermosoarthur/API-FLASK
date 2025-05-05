@@ -10,8 +10,9 @@ class Turma(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     descricao = db.Column(db.String(100), nullable=False)
-    sala = db.Column(db.String(10), nullable=False)
-    turno = db.Column(db.String(20), nullable=False)
+    professor_id = db.Column(db.Integer, db.ForeignKey('professores.id'), nullable=False)
+    ativo = db.Column(db.Boolean,default=True, nullable=False)
+    observacoes = db.Column(db.String(100), nullable=False)
 
     alunos = db.relationship('Aluno', backref='turma',
                              lazy=True)  
@@ -20,8 +21,9 @@ class Turma(db.Model):
         return {
             'id': self.id,
             'descricao': self.descricao,
-            'sala': self.sala,
-            'turno': self.turno
+            'professor_id': self.professor_id,
+            'ativo': self.ativo,
+            'observacoes': self.observacoes
         }
 
 
@@ -38,8 +40,9 @@ def buscar_turma_por_id(idTurma):
 def adicionar_turma(dados):
     nova_turma = Turma(
         descricao=dados['descricao'],  
-        sala=dados['sala'],
-        turno=dados['turno']
+        professor_id=dados['professor_id'],
+        ativo=dados['ativo'],
+        observacoes=dados['observacoes']
     )
     db.session.add(nova_turma)
     db.session.commit()
@@ -52,10 +55,12 @@ def atualizar_turma(idTurma, dados):
 
     if 'descricao' in dados:
         turma.descricao = dados['descricao']
-    if 'sala' in dados:
-        turma.sala = dados['sala']
-    if 'turno' in dados:
-        turma.turno = dados['turno']
+    if 'professor_id' in dados:
+        turma.professor_id = dados['professor_id']
+    if 'ativo' in dados:
+        turma.ativo = dados['ativo']
+    if 'observacoes' in dados:
+        turma.observacoes =dados ['observacoes']
 
     db.session.commit()
     return turma.to_dict(), 200

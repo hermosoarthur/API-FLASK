@@ -7,11 +7,8 @@ professor_bp = Blueprint('professor_bp', __name__,
 
 @professor_bp.route('', methods=['GET'])
 def listar_professores():
-    professores = professor_model.listar_professores()
-    return jsonify({
-        "quantidade": len(professores),
-        "professores": professores
-    })
+    return jsonify(professor_model.listar_professores())
+
 
 
 @professor_bp.route('', methods=['POST'])

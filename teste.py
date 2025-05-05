@@ -20,8 +20,9 @@ class TestAPI(unittest.TestCase):
         
         self.turma_test = Turma(
             descricao="Turma Teste",
-            sala="101",
-            turno="Manhã"
+            professor_id= 1,
+            ativo= 0,
+            observacoes= "testes"
         )
         db.session.add(self.turma_test)
 
@@ -152,8 +153,9 @@ class TestAPI(unittest.TestCase):
     def test_11_criar_turma(self):
         resposta = self.client.post("/projeto-api-flask/turmas", json={
             "descricao": "Turma de Química Avançada",
-            "sala": "Lab-05",
-            "turno": "Tarde"
+            "professor_id": 1,
+            "ativo": 1,
+            "observacoes": "Tests"
         })
         self.assertEqual(resposta.status_code, 201)
         self.assertIn("id", resposta.json)
@@ -169,8 +171,9 @@ class TestAPI(unittest.TestCase):
     def test_14_atualizar_turma(self):
         resposta = self.client.put(f"/projeto-api-flask/turmas/{self.turma_test.id}", json={
             "descricao": "Turma de Matemática",
-            "sala": "102",
-            "turno": "Noite"
+            "professor_id": 2,
+            "ativo": 0,
+            "observacoes": "Teste"
         })
         self.assertEqual(resposta.status_code, 200)
 
@@ -178,8 +181,9 @@ class TestAPI(unittest.TestCase):
         
         turma = self.client.post("/projeto-api-flask/turmas", json={
             "descricao": "Turma Temporária",
-            "sala": "Temp-01",
-            "turno": "Manhã"
+           "professor_id": 1,
+            "ativo": 1,
+            "observacoes": "Testss"
         }).json
 
         resposta = self.client.delete(

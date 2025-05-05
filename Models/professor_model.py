@@ -15,6 +15,10 @@ class Professor(db.Model):
     materia = db.Column(db.String(100), nullable=False)
     observacoes = db.Column(db.Text, nullable=True)
 
+    
+    turmas = db.relationship('Turma', backref='professores',
+                             lazy=True) 
+
     def to_dict(self):
         return {
             "id": self.id,
