@@ -1,7 +1,10 @@
 from flask import Blueprint, request, jsonify
 from Models import aluno_model
+from config import db
+from Models.turma_model import Turma  
 
-aluno_bp = Blueprint('aluno_bp', __name__, url_prefix='/alunos')
+
+aluno_bp = Blueprint('aluno_bp', __name__, url_prefix='/projeto-api-flask/alunos')
 
 
 @aluno_bp.route('', methods=['GET'])
@@ -20,6 +23,13 @@ def obter_aluno(aluno_id):
 @aluno_bp.route('', methods=['POST'])
 def criar_aluno():
     dados = request.json
+
+    
+    turma = Turma.query.get(dados.get('turma_id'))
+    if not turma:
+        return jsonify({"erro": "Turma não encontrada"}), 404
+
+    
     resultado, status = aluno_model.adicionar_aluno(dados)
     return jsonify(resultado), status
 

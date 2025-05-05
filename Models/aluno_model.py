@@ -1,6 +1,5 @@
 from datetime import datetime
-from app import db
-
+from config import db
 
 class Aluno(db.Model):
     __tablename__ = 'alunos'
@@ -8,11 +7,23 @@ class Aluno(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
     idade = db.Column(db.Integer, nullable=False)
-    turma_id = db.Column(db.Integer, nullable=False)
+    turma_id = db.Column(db.Integer, db.ForeignKey('turmas.id'), nullable=False)
     data_nascimento = db.Column(db.Date, nullable=False)
     nota_primeiro_semestre = db.Column(db.Float, nullable=True)
     nota_segundo_semestre = db.Column(db.Float, nullable=True)
     media_final = db.Column(db.Float, nullable=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nome': self.nome,
+            'idade': self.idade,
+            'turma_id': self.turma_id,
+            'data_nascimento': self.data_nascimento.strftime("%Y-%m-%d"),
+            'nota_primeiro_semestre': self.nota_primeiro_semestre,
+            'nota_segundo_semestre': self.nota_segundo_semestre,
+            'media_final': self.media_final
+        }
 
     def calcular_media(self):
         if self.nota_primeiro_semestre is not None and self.nota_segundo_semestre is not None:
@@ -21,45 +32,12 @@ class Aluno(db.Model):
         else:
             self.media_final = None
 
-
-def calcular_media(n1, n2):
-    if n1 is not None and n2 is not None:
-        return round((n1 + n2) / 2, 2)
-    return None
-
-
 def listar_alunos():
-    alunos = Aluno.query.all()
-    return [
-        {
-            "id": aluno.id,
-            "nome": aluno.nome,
-            "idade": aluno.idade,
-            "turma_id": aluno.turma_id,
-            "data_nascimento": aluno.data_nascimento.strftime("%Y-%m-%d"),
-            "nota_primeiro_semestre": aluno.nota_primeiro_semestre,
-            "nota_segundo_semestre": aluno.nota_segundo_semestre,
-            "media_final": aluno.media_final
-        }
-        for aluno in alunos
-    ]
-
+    return [aluno.to_dict() for aluno in Aluno.query.all()]
 
 def buscar_aluno_por_id(aluno_id):
     aluno = Aluno.query.get(aluno_id)
-    if aluno:
-        return {
-            "id": aluno.id,
-            "nome": aluno.nome,
-            "idade": aluno.idade,
-            "turma_id": aluno.turma_id,
-            "data_nascimento": aluno.data_nascimento.strftime("%Y-%m-%d"),
-            "nota_primeiro_semestre": aluno.nota_primeiro_semestre,
-            "nota_segundo_semestre": aluno.nota_segundo_semestre,
-            "media_final": aluno.media_final
-        }
-    return None
-
+    return aluno.to_dict() if aluno else None
 
 def adicionar_aluno(dados):
     campos_obrigatorios = ['nome', 'idade', 'turma_id', 'data_nascimento']
@@ -67,8 +45,7 @@ def adicionar_aluno(dados):
         if campo not in dados:
             return {"erro": f"Campo '{campo}' é obrigatório"}, 400
     try:
-        data_nasc = datetime.strptime(
-            dados['data_nascimento'], "%Y-%m-%d").date()
+        data_nasc = datetime.strptime(dados['data_nascimento'], "%Y-%m-%d").date()
     except ValueError:
         return {"erro": "Formato de data inválido. Use YYYY-MM-DD."}, 400
 
@@ -85,8 +62,7 @@ def adicionar_aluno(dados):
     db.session.add(novo_aluno)
     db.session.commit()
 
-    return buscar_aluno_por_id(novo_aluno.id), 201
-
+    return novo_aluno.to_dict(), 201
 
 def atualizar_aluno(aluno_id, dados):
     aluno = Aluno.query.get(aluno_id)
@@ -101,8 +77,7 @@ def atualizar_aluno(aluno_id, dados):
         aluno.turma_id = dados["turma_id"]
     if "data_nascimento" in dados:
         try:
-            aluno.data_nascimento = datetime.strptime(
-                dados["data_nascimento"], "%Y-%m-%d").date()
+            aluno.data_nascimento = datetime.strptime(dados["data_nascimento"], "%Y-%m-%d").date()
         except ValueError:
             return {"erro": "Formato de data inválido. Use YYYY-MM-DD."}, 400
     if "nota_primeiro_semestre" in dados:
@@ -114,15 +89,14 @@ def atualizar_aluno(aluno_id, dados):
 
     db.session.commit()
 
-    return buscar_aluno_por_id(aluno.id), 200
-
+    return aluno.to_dict(), 200
 
 def deletar_aluno(aluno_id):
-    aluno = Aluno.query.get(aluno_id)
-    if not aluno:
-        return {"erro": "Aluno não encontrado"}, 404
+     aluno = db.session.get(Aluno, aluno_id)
+     if not aluno:
+         return {"erro": "Aluno não encontrado"}, 404  
 
-    db.session.delete(aluno)
-    db.session.commit()
+     db.session.delete(aluno)
+     db.session.commit()
 
-    return {"mensagem": "Aluno removido com sucesso"}, 200
+     return {"mensagem": "Aluno deletado com sucesso"}, 200  

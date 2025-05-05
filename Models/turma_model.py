@@ -1,28 +1,74 @@
-turmas = []
+from config import db
+
+
+class TurmaNaoIdentificada(Exception):
+    pass
+
+
+class Turma(db.Model):
+    __tablename__ = 'turmas'
+
+    id = db.Column(db.Integer, primary_key=True)
+    descricao = db.Column(db.String(100), nullable=False)
+    sala = db.Column(db.String(10), nullable=False)
+    turno = db.Column(db.String(20), nullable=False)
+
+    alunos = db.relationship('Aluno', backref='turma',
+                             lazy=True)  
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'descricao': self.descricao,
+            'sala': self.sala,
+            'turno': self.turno
+        }
+
 
 def listar_turmas():
-    return turmas
+    turmas = Turma.query.all()
+    return [turma.to_dict() for turma in turmas], 200
 
-def buscar_turma_por_id(turma_id):
-    return next((t for t in turmas if t['id'] == turma_id), None)
+
+def buscar_turma_por_id(idTurma):
+    turma = db.session.get(Turma, idTurma)
+    return turma.to_dict() if turma else None
+
 
 def adicionar_turma(dados):
-    obrigatorios = {'id', 'descricao', 'professor_id', 'ativo'}
-    if not obrigatorios.issubset(dados.keys()):
-        return {"erro": "Campos 'id', 'descricao', 'professor_id' e 'ativo' são obrigatórios"}, 400
+    nova_turma = Turma(
+        descricao=dados['descricao'],  
+        sala=dados['sala'],
+        turno=dados['turno']
+    )
+    db.session.add(nova_turma)
+    db.session.commit()
+    return nova_turma.to_dict(), 201
 
-    turmas.append(dados)
-    return dados, 201
+def atualizar_turma(idTurma, dados):
+    turma = db.session.get(Turma, idTurma)
+    if not turma:
+        raise TurmaNaoIdentificada(f"Turma com ID {idTurma} não encontrada.")
 
-def atualizar_turma(turma_id, dados):
-    turma = buscar_turma_por_id(turma_id)
+    if 'descricao' in dados:
+        turma.descricao = dados['descricao']
+    if 'sala' in dados:
+        turma.sala = dados['sala']
+    if 'turno' in dados:
+        turma.turno = dados['turno']
+
+    db.session.commit()
+    return turma.to_dict(), 200
+
+
+
+def deletar_turma(idTurma):
+    turma = db.session.get(Turma, idTurma)
     if not turma:
         return {"erro": "Turma não encontrada"}, 404
 
-    turma.update(dados)
-    return turma, 200
-
-def deletar_turma(turma_id):
-    global turmas
-    turmas = [t for t in turmas if t['id'] != turma_id]
+    db.session.delete(turma)
+    db.session.commit()
     return {"mensagem": "Turma deletada com sucesso"}, 200
+
+
