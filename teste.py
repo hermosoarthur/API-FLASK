@@ -70,7 +70,7 @@ class TestAPI(unittest.TestCase):
             "data_nascimento": "2011-02-10",
             "nota_primeiro_semestre": 6.0,
             "nota_segundo_semestre": 7.0
-        }).json
+        }).json()
 
         resposta = self.client.put(f"/projeto-api-flask/alunos/{aluno['id']}", json={
             "nome": "Carlos Eduardo Souza",
@@ -89,7 +89,7 @@ class TestAPI(unittest.TestCase):
             "data_nascimento": "2010-08-25",
             "nota_primeiro_semestre": 9.5,
             "nota_segundo_semestre": 10.0
-        }).json
+        }).json()
 
         resposta = self.client.delete(
             f"/projeto-api-flask/alunos/{aluno['id']}")
@@ -112,6 +112,8 @@ class TestAPI(unittest.TestCase):
     def test_07_listar_professores(self):
         resposta = self.client.get('/projeto-api-flask/professores')
         self.assertEqual(resposta.status_code, 200)
+        self.assertIsInstance(resposta.json, list)
+        self.assertIsInstance(resposta.json[0], dict)
 
     def test_08_professor_inexistente(self):
         resposta = self.client.get('/projeto-api-flask/professores/9999')
@@ -132,7 +134,7 @@ class TestAPI(unittest.TestCase):
             "idade": 50,
             "materia": "Física",
             "observacoes": "Para teste de deleção"
-        }).json
+        }).json()
 
         resposta = self.client.delete(
             f'/projeto-api-flask/professores/{professor["id"]}')
@@ -175,7 +177,7 @@ class TestAPI(unittest.TestCase):
             "professor_id": 1,
             "ativo": 1,
             "observacoes": "Testss"
-        }).json
+        }).json()
 
         resposta = self.client.delete(
             f"/projeto-api-flask/turmas/{turma['id']}")
