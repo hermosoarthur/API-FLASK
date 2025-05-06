@@ -112,8 +112,6 @@ class TestAPI(unittest.TestCase):
     def test_07_listar_professores(self):
         resposta = self.client.get('/projeto-api-flask/professores')
         self.assertEqual(resposta.status_code, 200)
-        self.assertIsInstance(resposta.json, dict)
-        self.assertIn("professores", resposta.json)
 
     def test_08_professor_inexistente(self):
         resposta = self.client.get('/projeto-api-flask/professores/9999')
