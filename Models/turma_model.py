@@ -10,12 +10,13 @@ class Turma(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     descricao = db.Column(db.String(100), nullable=False)
-    professor_id = db.Column(db.Integer, db.ForeignKey('professores.id'), nullable=False)
-    ativo = db.Column(db.Boolean,default=True, nullable=False)
+    professor_id = db.Column(db.Integer, db.ForeignKey(
+        'professores.id'), nullable=False)
+    ativo = db.Column(db.Boolean, default=True, nullable=False)
     observacoes = db.Column(db.String(100), nullable=False)
 
     alunos = db.relationship('Aluno', backref='turma',
-                             lazy=True)  
+                             lazy=True)
 
     def to_dict(self):
         return {
@@ -29,7 +30,7 @@ class Turma(db.Model):
 
 def listar_turmas():
     turmas = Turma.query.all()
-    return [turma.to_dict() for turma in turmas], 200
+    return [turma.to_dict() for turma in turmas]
 
 
 def buscar_turma_por_id(idTurma):
@@ -39,7 +40,7 @@ def buscar_turma_por_id(idTurma):
 
 def adicionar_turma(dados):
     nova_turma = Turma(
-        descricao=dados['descricao'],  
+        descricao=dados['descricao'],
         professor_id=dados['professor_id'],
         ativo=dados['ativo'],
         observacoes=dados['observacoes']
@@ -47,6 +48,7 @@ def adicionar_turma(dados):
     db.session.add(nova_turma)
     db.session.commit()
     return nova_turma.to_dict(), 201
+
 
 def atualizar_turma(idTurma, dados):
     turma = db.session.get(Turma, idTurma)
@@ -60,11 +62,10 @@ def atualizar_turma(idTurma, dados):
     if 'ativo' in dados:
         turma.ativo = dados['ativo']
     if 'observacoes' in dados:
-        turma.observacoes =dados ['observacoes']
+        turma.observacoes = dados['observacoes']
 
     db.session.commit()
     return turma.to_dict(), 200
-
 
 
 def deletar_turma(idTurma):
@@ -75,5 +76,3 @@ def deletar_turma(idTurma):
     db.session.delete(turma)
     db.session.commit()
     return {"mensagem": "Turma deletada com sucesso"}, 200
-
-

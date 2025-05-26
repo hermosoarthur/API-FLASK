@@ -10,7 +10,6 @@ def listar_professores():
     return jsonify(professor_model.listar_professores())
 
 
-
 @professor_bp.route('', methods=['POST'])
 def criar_professor():
     dados = request.get_json()
@@ -49,3 +48,15 @@ def atualizar_professor(professor_id):
 def deletar_professor(professor_id):
     resultado, status = professor_model.deletar_professor(professor_id)
     return jsonify(resultado), status
+
+# Rota para verficar se professor leciona determinada turma
+
+
+@professor_bp.route('/<int:professor_id>/turma/<int:turma_id>', methods=['GET'])
+def verificar_professor_turma(professor_id, turma_id):
+    try:
+        resultado = professor_model.professor_leciona_turma(
+            professor_id, turma_id)
+        return jsonify(resultado), 200
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500

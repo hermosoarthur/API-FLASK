@@ -1,5 +1,6 @@
 from datetime import datetime
 from config import db
+from Models.turma_model import Turma
 
 
 class ProfessorNaoIdentificado(Exception):
@@ -101,3 +102,16 @@ def deletar_professor(professor_id):
     db.session.delete(professor)
     db.session.commit()
     return {"mensagem": "Professor removido com sucesso"}, 200
+
+# Função para verificar se o professor leciona uma turma específica
+
+def professor_leciona_turma(professor_id, turma_id):
+    professor = db.session.get(Professor, professor_id)
+    if not professor:
+        return False
+
+    for turma in professor.turmas:
+        if turma.id == turma_id:
+            return True
+    return False
+
