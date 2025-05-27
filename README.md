@@ -1,12 +1,12 @@
-#🎓 API de Gerenciamento Escolar
+# 🎓 API de Gerenciamento Escolar
 Este repositório contém a API de Gerenciamento Escolar, desenvolvida com Flask e SQLAlchemy.
 A API faz parte de uma arquitetura modular baseada em microsserviços e é responsável pelo gerenciamento de alunos, professores e turmas em uma instituição de ensino.
 
-##🧩 Arquitetura
+## 🧩 Arquitetura
 A API foi construída com uma estrutura clara e organizada, utilizando o padrão de camadas, separando controllers, models e rotas (namespaces).
 Conta também com documentação interativa via Swagger e está preparada para deploy em nuvem com Docker, Render e arquivos auxiliares como Procfile e render.yaml.
 
-##🚀 Tecnologias Utilizadas
+## 🚀 Tecnologias Utilizadas
 Python 3.x
 
 Flask
@@ -25,7 +25,7 @@ Render (para deploy)
 
 Git
 
-##▶️ Como Executar a API Localmente
+## ▶️ Como Executar a API Localmente
 1. Clone o repositório:
 bash
 Copiar
@@ -47,13 +47,13 @@ venv\Scripts\activate         # Windows
 
 pip install -r requirements.txt
 python app.py
-##🔗 Acesse:
+## 🔗 Acesse:
 Aplicação: http://localhost:5000
 
 Documentação Swagger: http://localhost:5000/docs
 
-##📡 Endpoints Principais
-##📘 Alunos
+## 📡 Endpoints Principais
+## 📘 Alunos
 GET /alunos
 
 GET /alunos/<id>
@@ -64,7 +64,7 @@ PUT /alunos/<id>
 
 DELETE /alunos/<id>
 
-##👨‍🏫 Professores
+## 👨‍🏫 Professores
 GET /professores
 
 GET /professores/<id>
@@ -75,7 +75,7 @@ PUT /professores/<id>
 
 DELETE /professores/<id>
 
-##🏫 Turmas
+## 🏫 Turmas
 GET /turmas
 
 GET /turmas/<id>
@@ -86,7 +86,7 @@ PUT /turmas/<id>
 
 DELETE /turmas/<id>
 
-##📦 Estrutura do Projeto
+## 📦 Estrutura do Projeto
 bash
 Copiar
 Editar
@@ -114,7 +114,7 @@ gerenciamento-escolar/
 │
 └── swagger/                # Documentação Swagger (Flask-RESTx)
     └── namespaces.py
-##🛠️ Futuras Melhorias
+## 🛠️ Futuras Melhorias
 Autenticação JWT para usuários
 
 Relacionamento entre alunos, professores e turmas
@@ -129,7 +129,7 @@ Geração de relatórios (boletins, frequência, etc.)
 
 
 
-#🧑‍💻 Autores
+# 🧑‍💻 Autores
 Nomes dos desenvolvedores 
 Arthur Hermoso                  2401651,
 Luana Garrido Moreira Dias 	    2501736,
