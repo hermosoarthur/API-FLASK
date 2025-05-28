@@ -15,8 +15,7 @@ class Turma(db.Model):
     ativo = db.Column(db.Boolean, default=True, nullable=False)
     observacoes = db.Column(db.String(100), nullable=False)
 
-    alunos = db.relationship('Aluno', backref='turma',
-                             lazy=True)
+    alunos = db.relationship('Aluno', backref='turmas', lazy=True)
 
     def to_dict(self):
         return {

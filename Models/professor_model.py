@@ -16,9 +16,7 @@ class Professor(db.Model):
     materia = db.Column(db.String(100), nullable=False)
     observacoes = db.Column(db.Text, nullable=True)
 
-    
-    turmas = db.relationship('Turma', backref='professores',
-                             lazy=True) 
+    turmas = db.relationship('Turma', backref='professor', lazy=True)
 
     def to_dict(self):
         return {
@@ -66,20 +64,13 @@ def adicionar_professor(dados):
     )
     db.session.add(novo_professor)
     db.session.commit()
-    return {
-        "id": novo_professor.id,
-        "nome": novo_professor.nome,
-        "idade": novo_professor.idade,
-        "materia": novo_professor.materia,
-        "observacoes": novo_professor.observacoes
-    }, 201
+    return novo_professor.to_dict(), 201
 
 
 def atualizar_professor(idProfessor, dados):
     professor = Professor.query.get(idProfessor)
     if not professor:
-        raise ProfessorNaoIdentificado(
-            f"Professor com ID {idProfessor} não encontrado.")
+        raise ProfessorNaoIdentificado(f"Professor com ID {idProfessor} não encontrado.")
 
     if 'nome' in dados:
         professor.nome = dados['nome']
@@ -103,15 +94,10 @@ def deletar_professor(professor_id):
     db.session.commit()
     return {"mensagem": "Professor removido com sucesso"}, 200
 
-# Função para verificar se o professor leciona uma turma específica
 
+# Função otimizada para verificar se o professor leciona uma turma específica
 def professor_leciona_turma(professor_id, turma_id):
-    professor = db.session.get(Professor, professor_id)
-    if not professor:
-        return False
-
-    for turma in professor.turmas:
-        if turma.id == turma_id:
-            return True
-    return False
-
+    return db.session.query(Turma).filter_by(
+        id=turma_id,
+        professor_id=professor_id
+    ).first() is not None

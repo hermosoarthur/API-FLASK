@@ -8,14 +8,14 @@ from Controllers.professor_controller import professor_bp
 from Controllers.turma_controller import turma_bp
 from flask_restx import Api
 from swagger.swagger_config import create_swagger
-
+import os
 app = Flask(__name__)
 app.config.from_object(Config)
 
-
 db.init_app(app)
 with app.app_context():
-    db.create_all()
+    if not os.path.exists('banco.db'):
+        db.create_all()
 
 create_swagger(app)
 
@@ -26,4 +26,3 @@ app.register_blueprint(turma_bp)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-
